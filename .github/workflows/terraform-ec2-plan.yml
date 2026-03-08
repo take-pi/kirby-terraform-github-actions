@@ -1,0 +1,50 @@
+name: Terraform EC2 Plan
+
+on:
+  pull_request:
+    paths:
+      - 'terraform/ec2/**'
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ap-northeast-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+
+      - name: Terraform Init
+        working-directory: terraform/ec2
+        run: terraform init
+
+      - name: Terraform Plan
+        id: plan
+        working-directory: terraform/ec2
+        run: |
+          terraform plan -no-color 2>&1 | tee plan_output.txt
+          echo "plan_output<<EOF" >> $GITHUB_OUTPUT
+          cat plan_output.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Comment Plan Result
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const output = `### Terraform Plan Result
+            \`\`\`terraform
+            ${{ steps.plan.outputs.plan_output }}
+            \`\`\`
+            `

@@ -1,0 +1,7 @@
+aws_region        = "ap-northeast-1"
+ami_id            = "ami-026e2b4d1f63701ee"
+instance_type     = "t4g.micro"
+instance_name     = "my-ec2-instance"
+vpc_cidr          = "10.0.0.0/16"
+subnet_cidr       = "10.0.1.0/24"
+availability_zone = "ap-northeast-1a"
